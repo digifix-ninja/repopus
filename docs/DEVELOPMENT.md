@@ -138,6 +138,7 @@ scripts/export-source.sh  copies the public source to export/repopus/ (runs on b
 scripts/build-all.sh      one command: macOS here + Windows/Linux on GitHub → dist/<version>/
 ci/build.yml              GitHub Actions workflow for all three systems
 docs/                     this guide and the README screenshots
+website/                  the static homepage for repopus.app (no build step)
 ```
 
 Code style: small objects with one job each, and a short comment on every function.

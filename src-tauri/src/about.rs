@@ -8,8 +8,8 @@ pub const APP_WEBSITE: &str = "https://repopus.app";
 pub const DEVELOPER: &str = "DigiFix S.à r.l.-S.";
 /// The developer's website.
 pub const WEBSITE: &str = "https://digifix.ninja";
-/// Public source code on GitHub. Empty until the repository exists (the link stays hidden).
-pub const SOURCE_CODE: &str = "";
+/// Public source code on GitHub (an empty value hides the link).
+pub const SOURCE_CODE: &str = "https://github.com/digifix-ninja/repopus";
 pub const LICENCE: &str = "MIT";
 pub const COPYRIGHT_YEAR: &str = "2026";
 
