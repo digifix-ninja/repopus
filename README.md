@@ -5,9 +5,9 @@
 <h1 align="center">Repopus</h1>
 
 <p align="center">
-  <strong>Keep local copies of your GitHub repositories, always up to date.</strong><br>
-  Follow whole accounts or single repositories. Repopus checks GitHub for you, downloads only
-  what changed, and never deletes anything that disappears.
+  <strong>Keep the GitHub projects you follow on your disk, always at their latest version.</strong><br>
+  Follow a creator, an app, a library or a single repository. Repopus checks GitHub for you,
+  downloads only what changed, and never deletes anything that disappears.
 </p>
 
 <p align="center">
@@ -32,14 +32,16 @@
 
 ## What it does
 
-Paste a GitHub link and Repopus takes care of the rest:
+Apps you run from source, libraries you build on, themes, fonts, datasets: whatever someone
+keeps on GitHub, Repopus keeps their latest version on your computer. Paste a link and it takes
+care of the rest:
 
-- **A whole account**, like `github.com/username`, follows every repository it has, including
-  new ones as they appear.
+- **A creator**, like `github.com/username`, follows everything that person or organisation
+  publishes, including new repositories as they appear.
 - **A single repository**, like `github.com/username/project`, adds just that one. Add
   `/tree/<branch>` to follow a specific branch.
 
-Every account gets its own category, with one line per repository:
+Every creator gets their own category, with one line per repository:
 
 | Mark | Meaning |
 |:---:|---|

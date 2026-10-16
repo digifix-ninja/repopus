@@ -37,38 +37,16 @@ build output on the internal disk, e.g. `export CARGO_TARGET_DIR="$HOME/Library/
 
 ## Releases (all three systems)
 
-`ci/build.yml` is a GitHub Actions workflow that builds macOS (Apple Silicon and Intel), Windows
-and Linux on GitHub's servers. In the public repository it lives at
-`.github/workflows/build.yml`.
+`.github/workflows/build.yml` is a GitHub Actions workflow that builds macOS (Apple Silicon and
+Intel), Windows and Linux on GitHub's servers.
 
 - **Push a version tag** (`git tag v0.1.0 && git push origin v0.1.0`): the installers are attached
   to a **draft** release. Nothing is public until you press *Publish*.
 - **Run it by hand** under *Actions → Build Repopus → Run workflow*: the installers are kept as
   downloadable artifacts of the run.
 
-**One command from a Mac:** `sh scripts/build-all.sh` builds the macOS version locally, pushes
-the public source (after asking), lets GitHub build Windows and Linux, waits, and downloads
-everything into `dist/<version>/`. It needs the [GitHub CLI](https://cli.github.com)
-(`brew install gh && gh auth login`).
-
 The installers aren't code-signed yet. Signing needs an Apple Developer account and a Windows
 code-signing certificate, which can be added to the workflow later.
-
-## Maintainer workflow: the public source folder
-
-The project the maintainer works in isn't the public repository itself. Every
-`cargo tauri build` on macOS or Linux runs `scripts/export-source.sh`, which copies the public
-source to `export/repopus/`. It leaves out build output, generated files and local clutter
-(`.DS_Store`, `.env`, editor folders), and puts `ci/build.yml` at `.github/workflows/build.yml`.
-The first export makes it a git repository; later exports update it in place and keep its
-history:
-
-```sh
-cd export/repopus
-git add -A && git commit -m "Repopus 0.1.0"
-git remote add origin https://github.com/<you>/repopus.git   # once
-git push -u origin main
-```
 
 ## How it works
 
@@ -124,7 +102,7 @@ src-tauri/src/            the desktop app (macOS, Windows, Linux)
   desktop.rs                Desktop – show in Finder/Explorer, open links (per system)
   look.rs                   Look – light / dark window frame
   about.rs                  About – version, websites, developer, licence, allowed links
-src-tauri/tauri*.conf.json  app configuration (+ macOS / Linux additions)
+src-tauri/tauri.conf.json   app configuration
 ui/                       the interface (plain HTML/CSS/JS modules)
   index.html, styles.css, logo.svg
   js/main.js                App – creates views, connects to Rust
@@ -134,11 +112,8 @@ ui/                       the interface (plain HTML/CSS/JS modules)
   js/theme.js               Theme – system / light / dark grey
   js/format.js, icons.js, toast.js
   js/views/                 Header, RepoList, Progress, Sheet, RepoPanel, SettingsPanel, AboutPanel
-scripts/export-source.sh  copies the public source to export/repopus/ (runs on build)
-scripts/build-all.sh      one command: macOS here + Windows/Linux on GitHub → dist/<version>/
-ci/build.yml              GitHub Actions workflow for all three systems
+.github/workflows/build.yml  GitHub Actions workflow for all three systems
 docs/                     this guide and the README screenshots
-website/                  the static homepage for repopus.app (no build step)
 ```
 
 Code style: small objects with one job each, and a short comment on every function.
@@ -154,5 +129,4 @@ Code style: small objects with one job each, and a short comment on every functi
 ## Changing the About information
 
 Websites, developer and the link to the source code are constants in
-`src-tauri/src/about.rs`. Set `SOURCE_CODE` once the repository is public, and the About panel
-shows the link. The licence text is in `LICENSE`.
+`src-tauri/src/about.rs`. The licence text is in `LICENSE`.

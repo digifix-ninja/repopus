@@ -1,5 +1,3 @@
 /target
 /src-tauri/gen
 .DS_Store
-/export/
-/dist/

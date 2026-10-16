@@ -43,7 +43,7 @@ export class AboutPanel extends Sheet {
           <h2>${esc(a.name)}</h2>
           <div class="muted">Version ${esc(a.version)}</div>
           ${a.app_website ? `<div class="about-site"><a class="link" data-url="${esc(a.app_website)}">${esc(host(a.app_website))}</a></div>` : ""}
-          <p>Keeps local copies of your GitHub repositories up to date — and never deletes
+          <p>Keeps the GitHub projects you follow up to date on your computer, and never deletes
              anything that disappears from GitHub.</p>
         </div>
 
