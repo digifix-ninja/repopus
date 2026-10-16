@@ -1,5 +1,8 @@
 <p align="center">
-  <img src="ui/logo.svg" width="140" alt="Repopus, the winking octopus">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="docs/logo-white.svg">
+    <img src="ui/logo.svg" width="140" alt="Repopus, the winking octopus">
+  </picture>
 </p>
 
 <h1 align="center">Repopus</h1>
