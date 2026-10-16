@@ -1,10 +1,14 @@
 # Builds Repopus for macOS (Apple Silicon and Intel), Windows and Linux on GitHub's servers.
 #
 # Two ways it runs:
-#   * Version tag pushed (git tag v0.1.0 && git push origin v0.1.0): installers are attached
+#   * Version tag pushed (git tag v0.2.0 && git push origin v0.2.0): installers are attached
 #     to a *draft* release, so nothing is public until you press "Publish" on GitHub.
 #   * Started by hand (Actions → Build Repopus → Run workflow): installers are kept as downloadable
 #     "artifacts" of the run (no release is made).
+#
+# The installers get fixed names without the version (Repopus-macOS-Apple-Silicon.dmg, …), so
+# https://github.com/digifix-ninja/repopus/releases/latest/download/<name> always points to the
+# newest published version.
 
 name: Build Repopus
 
@@ -24,16 +28,16 @@ jobs:
         include:
           - name: macos-apple-silicon
             platform: macos-latest
-            args: --target aarch64-apple-darwin
+            target: aarch64-apple-darwin
           - name: macos-intel
             platform: macos-latest
-            args: --target x86_64-apple-darwin
+            target: x86_64-apple-darwin
           - name: windows
             platform: windows-latest
-            args: ""
+            target: ""
           - name: linux
             platform: ubuntu-22.04
-            args: ""
+            target: ""
 
     runs-on: ${{ matrix.platform }}
 
@@ -50,36 +54,83 @@ jobs:
       - name: Rust
         uses: dtolnay/rust-toolchain@stable
         with:
-          targets: ${{ matrix.platform == 'macos-latest' && 'aarch64-apple-darwin,x86_64-apple-darwin' || '' }}
+          targets: ${{ matrix.target }}
 
       - name: Rust build cache
         uses: swatinem/rust-cache@v2
         with:
           workspaces: ". -> target"
 
-      - name: Build (and attach to a draft release for version tags)
+      - name: Build the installers
         uses: tauri-apps/tauri-action@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          # An empty tag name means "just build, no release".
-          tagName: ${{ startsWith(github.ref, 'refs/tags/') && 'v__VERSION__' || '' }}
-          releaseName: "Repopus v__VERSION__"
-          releaseBody: "See the assets below for macOS, Windows and Linux."
-          releaseDraft: true
-          prerelease: false
-          args: ${{ matrix.args }}
+          args: ${{ matrix.target && format('--target {0}', matrix.target) || '' }}
+
+      # Gives every installer its fixed public name (no version in it).
+      - name: Name the installers
+        shell: bash
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          if [ -n "${{ matrix.target }}" ]; then
+            bundle="target/${{ matrix.target }}/release/bundle"
+          else
+            bundle="target/release/bundle"
+          fi
+          mkdir -p installers
+
+          # Copies the single file matching a pattern to its public name (fails if none or several).
+          take() {
+            files=( $1 )
+            if [ "${#files[@]}" -ne 1 ]; then
+              echo "Expected exactly one file for $1, found ${#files[@]}" >&2
+              exit 1
+            fi
+            cp "${files[0]}" "installers/$2"
+            echo "$2  ←  ${files[0]}"
+          }
+
+          case "${{ matrix.name }}" in
+            macos-apple-silicon) take "$bundle/dmg/*.dmg" "Repopus-macOS-Apple-Silicon.dmg" ;;
+            macos-intel)         take "$bundle/dmg/*.dmg" "Repopus-macOS-Intel.dmg" ;;
+            windows)
+              take "$bundle/nsis/*-setup.exe" "Repopus-Windows-Setup.exe"
+              take "$bundle/msi/*.msi"        "Repopus-Windows.msi"
+              ;;
+            linux)
+              take "$bundle/appimage/*.AppImage" "Repopus-Linux.AppImage"
+              take "$bundle/deb/*.deb"           "Repopus-Linux.deb"
+              take "$bundle/rpm/*.rpm"           "Repopus-Linux.rpm"
+              ;;
+          esac
 
       - name: Keep the installers as run artifacts
         uses: actions/upload-artifact@v4
         with:
           name: repopus-${{ matrix.name }}
+          path: installers/*
           if-no-files-found: error
-          path: |
-            target/release/bundle/dmg/*.dmg
-            target/*/release/bundle/dmg/*.dmg
-            target/release/bundle/msi/*.msi
-            target/release/bundle/nsis/*.exe
-            target/release/bundle/deb/*.deb
-            target/release/bundle/rpm/*.rpm
-            target/release/bundle/appimage/*.AppImage
+
+  # For version tags only: one draft release with all installers.
+  release:
+    needs: build
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    steps:
+      - name: Collect the installers
+        uses: actions/download-artifact@v4
+        with:
+          path: installers
+          merge-multiple: true
+
+      - name: Create the draft release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          TAG: ${{ github.ref_name }}
+        run: |
+          ls -l installers
+          gh release create "$TAG" installers/* \
+            --repo "${{ github.repository }}" \
+            --draft \
+            --title "Repopus $TAG" \
+            --notes "See the assets below for macOS, Windows and Linux."

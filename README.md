@@ -74,10 +74,10 @@ Download the latest version for your system from the [**Releases**](../../releas
 
 | System | File |
 |---|---|
-| macOS (Apple Silicon) | `Repopus_<version>_aarch64.dmg` |
-| macOS (Intel) | `Repopus_<version>_x64.dmg` |
-| Windows | `Repopus_<version>_x64-setup.exe` or `.msi` |
-| Linux | `.AppImage` (any distribution), `.deb` (Debian, Ubuntu) or `.rpm` (Fedora, openSUSE) |
+| macOS (Apple Silicon) | `Repopus-macOS-Apple-Silicon.dmg` |
+| macOS (Intel) | `Repopus-macOS-Intel.dmg` |
+| Windows | `Repopus-Windows-Setup.exe` or `Repopus-Windows.msi` |
+| Linux | `Repopus-Linux.AppImage` (any distribution), `.deb` (Debian, Ubuntu) or `.rpm` (Fedora, openSUSE) |
 
 > **First start:** the installers aren't code-signed yet. On macOS, right-click the app →
 > **Open** the first time. On Windows, choose **More info → Run anyway** if SmartScreen asks.

@@ -41,7 +41,9 @@ build output on the internal disk, e.g. `export CARGO_TARGET_DIR="$HOME/Library/
 Intel), Windows and Linux on GitHub's servers.
 
 - **Push a version tag** (`git tag v0.1.0 && git push origin v0.1.0`): the installers are attached
-  to a **draft** release. Nothing is public until you press *Publish*.
+  to a **draft** release. Nothing is public until you press *Publish*. They always have the same
+  names (`Repopus-macOS-Apple-Silicon.dmg`, `Repopus-Windows-Setup.exe`, `Repopus-Linux.deb`…), so
+  `releases/latest/download/<name>` always gives the newest version.
 - **Run it by hand** under *Actions → Build Repopus → Run workflow*: the installers are kept as
   downloadable artifacts of the run.
 
