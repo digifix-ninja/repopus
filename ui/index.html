@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Repopus</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Title bar: brand, summary, main actions. Empty areas drag the window. -->
+  <header class="titlebar" data-tauri-drag-region>
+    <div class="brand" data-tauri-drag-region>
+      <img src="logo.svg" alt="" data-tauri-drag-region>
+      <span data-tauri-drag-region>Repopus</span>
+    </div>
+    <div class="summary" id="summary" data-tauri-drag-region></div>
+    <div class="actions">
+      <button id="btn-check" class="btn" title="Check for updates (⌘R)">
+        <svg class="ico" viewBox="0 0 16 16"><path d="M13.5 8a5.5 5.5 0 1 1-1.6-3.9M13.5 2.5v3h-3" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="label">Check now</span>
+      </button>
+      <button id="btn-update-all" class="btn primary" title="Download every available update">
+        <svg class="ico" viewBox="0 0 16 16"><path d="M8 2.5v8M4.5 7 8 10.5 11.5 7M3 13.5h10" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <span class="label">Update all</span><span class="count" id="update-count"></span>
+      </button>
+      <button id="btn-about" class="icon-btn" title="About Repopus">
+        <svg viewBox="0 0 20 20"><circle cx="10" cy="10" r="7.6" fill="none" stroke="currentColor" stroke-width="1.4"/><path d="M10 9v5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><circle cx="10" cy="6.3" r="1" fill="currentColor"/></svg>
+      </button>
+      <button id="btn-settings" class="icon-btn" title="Settings (⌘,)">
+        <svg viewBox="0 0 20 20">
+          <path d="M8.21 3.85 L8.52 1.53 L11.48 1.53 L11.79 3.85 L13.08 4.39 L14.95 2.96 L17.04 5.05 L15.61 6.92 L16.15 8.21 L18.47 8.52 L18.47 11.48 L16.15 11.79 L15.61 13.08 L17.04 14.95 L14.95 17.04 L13.08 15.61 L11.79 16.15 L11.48 18.47 L8.52 18.47 L8.21 16.15 L6.92 15.61 L5.05 17.04 L2.96 14.95 L4.39 13.08 L3.85 11.79 L1.53 11.48 L1.53 8.52 L3.85 8.21 L4.39 6.92 L2.96 5.05 L5.05 2.96 L6.92 4.39 Z" fill="none" stroke="currentColor" stroke-width="1.35" stroke-linejoin="round"/>
+          <circle cx="10" cy="10" r="2.7" fill="none" stroke="currentColor" stroke-width="1.35"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <!-- Add a link -->
+  <section class="addbar">
+    <form id="add-form" autocomplete="off">
+      <svg class="ico add-ico" viewBox="0 0 16 16"><path d="M6.5 9.5a3 3 0 0 0 4.2 0l2.1-2.1a3 3 0 0 0-4.2-4.2l-.7.7M9.5 6.5a3 3 0 0 0-4.2 0L3.2 8.6a3 3 0 0 0 4.2 4.2l.7-.7" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input id="add-input" spellcheck="false" placeholder="Paste a GitHub link: a whole account like github.com/username, or one repository">
+      <button class="btn primary" id="add-btn" type="submit">Add</button>
+    </form>
+  </section>
+
+  <!-- Search, filters, fold controls, activity line -->
+  <section class="filterbar">
+    <div class="search">
+      <svg class="ico" viewBox="0 0 16 16"><circle cx="7" cy="7" r="4.5" fill="none" stroke="currentColor" stroke-width="1.5"/><path d="m10.5 10.5 3 3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg>
+      <input id="search" placeholder="Filter" spellcheck="false">
+    </div>
+    <div class="segmented" id="filters">
+      <button data-filter="all" class="on">All <span></span></button>
+      <button data-filter="updates">Updates <span></span></button>
+      <button data-filter="missing">Missing <span></span></button>
+    </div>
+    <div class="fold-all">
+      <button class="link-btn" id="btn-collapse-all" title="Fold all categories">Collapse all</button>
+      <span class="dot">·</span>
+      <button class="link-btn" id="btn-expand-all" title="Open all categories">Expand all</button>
+    </div>
+    <div class="activity" id="activity"></div>
+  </section>
+
+  <main id="list" tabindex="-1"></main>
+
+  <div id="scrim" class="scrim"></div>
+  <aside id="panel" class="sheet" aria-hidden="true"></aside>
+  <aside id="settings" class="sheet" aria-hidden="true"></aside>
+  <aside id="about" class="sheet" aria-hidden="true"></aside>
+  <div id="toast" class="toast"></div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

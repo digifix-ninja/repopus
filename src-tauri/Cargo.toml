@@ -1,0 +1,32 @@
+[package]
+name = "repopus"
+version = "0.1.0"
+edition = "2021"
+description = "Repopus keeps local copies of GitHub repositories up to date"
+license = "MIT"
+authors = ["DigiFix S.à r.l.-S."]
+homepage = "https://repopus.app"
+default-run = "repopus"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
+
+[dependencies]
+repopus-core = { path = "../core" }
+log = "0.4"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+tauri = { version = "2", features = ["tray-icon", "image-png"] }
+tauri-plugin-autostart = "2"
+tauri-plugin-dialog = "2"
+tokio = { version = "1", features = ["sync", "time"] }
+
+# Token storage in each system's own keychain.
+[target.'cfg(target_os = "macos")'.dependencies]
+keyring = { version = "3", features = ["apple-native"] }
+
+[target.'cfg(windows)'.dependencies]
+keyring = { version = "3", features = ["windows-native"] }
+
+[target.'cfg(target_os = "linux")'.dependencies]
+keyring = { version = "3", features = ["sync-secret-service", "crypto-rust"] }

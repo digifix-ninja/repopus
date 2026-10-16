@@ -1,0 +1,14 @@
+{
+  "build": {
+    "beforeBuildCommand": "if [ -f scripts/export-source.sh ]; then sh scripts/export-source.sh; else sh ../scripts/export-source.sh; fi"
+  },
+  "bundle": {
+    "linux": {
+      "deb": {
+        "depends": [
+          "libayatana-appindicator3-1"
+        ]
+      }
+    }
+  }
+}
