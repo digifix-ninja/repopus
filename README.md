@@ -1,8 +1,6 @@
 <p align="center">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="docs/logo-white.svg">
-    <img src="ui/logo.svg" width="140" alt="Repopus, the winking octopus">
-  </picture>
+  <img src="ui/logo.svg#gh-light-mode-only" width="140" alt="Repopus, the winking octopus">
+  <img src="docs/logo-white.svg#gh-dark-mode-only" width="140" alt="Repopus, the winking octopus">
 </p>
 
 <h1 align="center">Repopus</h1>
@@ -26,10 +24,8 @@
   <img alt="Licence: MIT" src="https://img.shields.io/badge/licence-MIT-111">
 </p>
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/screenshot-dark.png">
-  <img alt="Repopus showing repositories grouped by account, with up-to-date, update and missing marks" src="docs/screenshot-light.png">
-</picture>
+<img src="docs/screenshot-light.png#gh-light-mode-only" alt="Repopus showing repositories grouped by creator, with up-to-date, update and missing marks">
+<img src="docs/screenshot-dark.png#gh-dark-mode-only" alt="Repopus showing repositories grouped by creator, with up-to-date, update and missing marks">
 
 ---
 
