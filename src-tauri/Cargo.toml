@@ -1,6 +1,6 @@
 [package]
 name = "repopus"
-version = "0.2.0"
+version = "0.2.1"
 edition = "2021"
 description = "Repopus keeps local copies of GitHub repositories up to date"
 license = "MIT"

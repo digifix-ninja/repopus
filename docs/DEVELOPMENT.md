@@ -47,8 +47,23 @@ Intel), Windows and Linux on GitHub's servers.
 - **Run it by hand** under *Actions → Build Repopus → Run workflow*: the installers are kept as
   downloadable artifacts of the run.
 
-The installers aren't code-signed yet. Signing needs an Apple Developer account and a Windows
-code-signing certificate, which can be added to the workflow later.
+### Signing the macOS version
+
+The workflow signs and notarises the macOS installers when the repository has these secrets
+(*Settings → Secrets and variables → Actions*):
+
+| Secret | What it is |
+|---|---|
+| `APPLE_CERTIFICATE` | the *Developer ID Application* certificate as a `.p12`, base64-encoded |
+| `APPLE_CERTIFICATE_PASSWORD` | the password chosen when exporting the `.p12` |
+| `APPLE_SIGNING_IDENTITY` | e.g. `Developer ID Application: Name (TEAMID)` |
+| `APPLE_ID` | the Apple ID e-mail of the developer account |
+| `APPLE_PASSWORD` | an app-specific password for that Apple ID (account.apple.com) |
+| `APPLE_TEAM_ID` | the 10-character team ID |
+
+Without them (in a fork, for example), the app gets an ad-hoc signature: it works, but macOS asks
+to confirm it under *System Settings → Privacy & Security → Open Anyway*. The Windows installers
+aren't signed yet.
 
 ## How it works
 
