@@ -78,10 +78,8 @@ Download the latest version for your system from the [**Releases**](../../releas
 | Windows | `Repopus-Windows-Setup.exe` or `Repopus-Windows.msi` |
 | Linux | `Repopus-Linux.AppImage` (any distribution), `.deb` (Debian, Ubuntu) or `.rpm` (Fedora, openSUSE) |
 
-> **First start:** the installers aren't code-signed yet. On macOS, open Repopus once, then go to
-> **System Settings → Privacy & Security** and click **Open Anyway**. If macOS says the app is
-> "damaged", run `xattr -dr com.apple.quarantine /Applications/Repopus.app` in Terminal.
-> On Windows, choose **More info → Run anyway** if SmartScreen asks.
+> **First start:** the macOS version is signed and notarised by Apple. The Windows installers
+> aren't signed yet: choose **More info → Run anyway** if SmartScreen asks.
 > On Linux, the tray icon needs AppIndicator support (on GNOME: the "AppIndicator" extension).
 
 ## GitHub token (optional)
