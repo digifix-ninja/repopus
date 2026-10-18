@@ -2,7 +2,7 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Repopus",
   "version": "0.2.1",
-  "identifier": "ninja.digifix.repopus",
+  "identifier": "dev.stean.repopus",
   "build": {
     "frontendDist": "../ui"
   },
@@ -28,8 +28,8 @@
     "active": true,
     "targets": "all",
     "category": "DeveloperTool",
-    "publisher": "DigiFix S.à r.l.-S.",
-    "copyright": "© 2026 DigiFix S.à r.l.-S. · MIT licence",
+    "publisher": "stean.ART",
+    "copyright": "© 2026 stean.ART · MIT licence",
     "shortDescription": "Keeps local copies of GitHub repositories up to date",
     "icon": [
       "icons/32x32.png",

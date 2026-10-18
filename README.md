@@ -120,7 +120,7 @@ Bug reports, ideas and pull requests are welcome. Please open an issue first for
 
 ## Licence
 
-[MIT](LICENSE) © 2026 [DigiFix S.à r.l.-S.](https://digifix.ninja)
+[MIT](LICENSE) © 2026 [stean.ART](https://stean.art)
 
 Repopus isn't affiliated with GitHub, Inc. GitHub is a trademark of GitHub, Inc.;
 Git is a trademark of the Software Freedom Conservancy.
