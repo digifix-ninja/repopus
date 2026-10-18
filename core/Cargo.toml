@@ -3,7 +3,7 @@ name = "repopus-core"
 version = "0.2.1"
 edition = "2021"
 license = "MIT"
-authors = ["DigiFix S.à r.l.-S."]
+authors = ["stean.ART"]
 description = "Sync engine for Repopus: checks GitHub repositories and keeps local zip/folder copies up to date"
 
 [dependencies]

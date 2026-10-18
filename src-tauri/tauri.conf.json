@@ -28,8 +28,8 @@
     "active": true,
     "targets": "all",
     "category": "DeveloperTool",
-    "publisher": "DigiFix S.à r.l.-S.",
-    "copyright": "© 2026 DigiFix S.à r.l.-S. · MIT licence",
+    "publisher": "stean.ART",
+    "copyright": "© 2026 stean.ART · MIT licence",
     "shortDescription": "Keeps local copies of GitHub repositories up to date",
     "icon": [
       "icons/32x32.png",
