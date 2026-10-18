@@ -35,8 +35,10 @@ Apps you run from source, libraries you build on, themes, fonts, datasets: whate
 keeps on GitHub, Repopus keeps their latest version on your computer. Paste a link and it takes
 care of the rest:
 
-- **A creator**, like `github.com/username`, follows everything that person or organisation
-  publishes, including new repositories as they appear.
+- **A creator**, like `github.com/username`, opens a list of everything that person or
+  organisation publishes, so you can switch on the repositories you want to keep. New
+  repositories can be added automatically as they appear. Press *Choose…* on the creator's
+  category to change the selection later.
 - **A single repository**, like `github.com/username/project`, adds just that one. Add
   `/tree/<branch>` to follow a specific branch.
 

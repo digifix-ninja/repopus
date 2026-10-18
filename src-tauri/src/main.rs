@@ -83,6 +83,8 @@ fn main() {
             commands::get_state,
             commands::about,
             commands::add_link,
+            commands::account_repos,
+            commands::choose_repos,
             commands::check_now,
             commands::update_repo,
             commands::update_all,

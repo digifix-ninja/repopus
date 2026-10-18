@@ -17,7 +17,7 @@ export class SettingsPanel extends Sheet {
     super(document.querySelector("#settings"));
     this.store = store;
     this.toast = toast;
-    this.actions = actions; // { reload(), openAbout() }
+    this.actions = actions; // { reload(), openAbout(), chooseRepos(owner) }
     this.tokenStatus = null;
     this.el.addEventListener("click", e => this.onClick(e));
     this.el.addEventListener("change", e => this.onChange(e));
@@ -173,7 +173,7 @@ export class SettingsPanel extends Sheet {
       </div>`;
   }
 
-  /** Followed accounts, with unfollow and "bring back" for ignored repositories. */
+  /** Followed accounts, with "choose repositories" and unfollow. */
   accountsHtml() {
     const counts = {};
     for (const repo of this.store.all()) if (repo.source) counts[repo.source] = (counts[repo.source] || 0) + 1;
@@ -186,18 +186,19 @@ export class SettingsPanel extends Sheet {
   /** One followed account. */
   accountHtml(source, count) {
     const kind = source.account_type === "Organization" ? "organisation" : "user";
-    const ignored = source.ignored.length
-      ? `<div class="help">Not tracked (click × to bring back):</div>
-         <div class="chips">${source.ignored.map(name => `<span class="chip">${esc(name)}<button data-restore="${esc(source.id)}" data-name="${esc(name)}" title="Track again">×</button></span>`).join("")}</div>`
-      : "";
+    const notes = [];
+    if (source.ignored.length) notes.push(`${Format.repositories(source.ignored.length)} not tracked`);
+    notes.push(source.add_new ? "new repositories are added automatically" : "new repositories are not added");
+    const help = notes.join(" · ");
     return `
       <div class="account">
         <div class="top">
           <div class="who"><b>${esc(source.owner)}</b> <span class="muted">· ${kind} · ${Format.repositories(count)}</span></div>
+          <button class="btn small" data-choose="${esc(source.owner)}">Choose repositories…</button>
           <button class="btn small danger" data-unfollow="${esc(source.id)}">Unfollow</button>
         </div>
         ${source.last_error ? `<div class="err">${esc(source.last_error)}</div>` : ""}
-        ${ignored}
+        <div class="help">${esc(help[0].toUpperCase() + help.slice(1))}</div>
       </div>`;
   }
 
@@ -252,7 +253,7 @@ export class SettingsPanel extends Sheet {
     if (t.hasAttribute("data-token-save")) return this.saveToken();
     if (t.hasAttribute("data-token-remove")) return this.removeToken();
     if (t.dataset.unfollow) return Sheet.confirm(t, "Sure? Files are kept", () => this.unfollow(t.dataset.unfollow));
-    if (t.dataset.restore) return this.restore(t.dataset.restore, t.dataset.name);
+    if (t.dataset.choose) return this.actions.chooseRepos(t.dataset.choose);
   }
 
   /** Switches and menus. */
@@ -317,12 +318,6 @@ export class SettingsPanel extends Sheet {
   async unfollow(id) {
     const { ok } = await this.call(() => Api.removeSource(id));
     if (ok) this.toast.show("Unfollowed. Files are kept.");
-  }
-
-  /** Brings an ignored repository back. */
-  async restore(sourceId, name) {
-    const { ok } = await this.call(() => Api.restoreIgnored(sourceId, name));
-    if (ok) this.toast.show(`${name} will be tracked again`);
   }
 
   /** Runs an API call; shows an error instead of throwing. Returns { ok, value }. */

@@ -11,7 +11,7 @@ import { Progress } from "./progress.js";
 const esc = Format.esc;
 
 export class RepoList {
-  /** `actions`: { openRepo(id), updateRepo(id), toggleGroup(key), updateGroup(owner), fillExample(text) } */
+  /** `actions`: { openRepo(id), updateRepo(id), toggleGroup(key), updateGroup(owner), fillExample(text), chooseRepos(owner) } */
   constructor(store, actions) {
     this.store = store;
     this.actions = actions;
@@ -166,6 +166,11 @@ export class RepoList {
     const example = target.closest("[data-example]");
     if (example) return this.actions.fillExample(example.dataset.example);
 
+    const choose = target.closest("[data-choose-group]");
+    if (choose) {
+      event.stopPropagation();
+      return this.actions.chooseRepos(choose.dataset.chooseGroup);
+    }
     const groupUpdate = target.closest("[data-update-group]");
     if (groupUpdate) {
       event.stopPropagation();
@@ -195,6 +200,9 @@ export class RepoList {
     const updateButton = group.updatable
       ? `<button class="btn small" data-update-group="${esc(group.title)}" title="Update everything in ${esc(group.title)}">${Icons.download}Update ${group.updatable}</button>`
       : "";
+    const chooseButton = group.source
+      ? `<button class="btn small" data-choose-group="${esc(group.source.owner)}" title="Choose which repositories of ${esc(group.title)} to keep">Choose…</button>`
+      : "";
     return `
       <span class="fold">${Icons.chevron}</span>
       <h2>${esc(group.title)}</h2>
@@ -202,6 +210,7 @@ export class RepoList {
       ${flags.join("")}
       ${error}
       <span class="spacer"></span>
+      ${chooseButton}
       ${updateButton}`;
   }
 
@@ -257,8 +266,9 @@ export class RepoList {
       <div class="empty">
         <img src="logo.svg" alt="">
         <h1>Keep GitHub repositories on your computer</h1>
-        <p>Paste a link above. An account link follows every repository it has, including new ones;
-           a repository link adds just that one. Each account gets its own category.
+        <p>Paste a link above. An account link lets you choose which of its repositories to keep,
+           and can add new ones as they appear; a repository link adds just that one. Each account
+           gets its own category.
            Nothing is ever deleted when something disappears from GitHub.</p>
         <div class="examples">
           <button class="btn small" data-example="github.com/">github.com/username</button>

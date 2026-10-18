@@ -20,9 +20,10 @@ export class Api {
 
   // ---- adding / removing
   static addLink(link) { return this.call("add_link", { link }); }
+  static accountRepos(owner) { return this.call("account_repos", { owner }); }
+  static chooseRepos(owner, chosen, addNew) { return this.call("choose_repos", { owner, chosen, addNew }); }
   static removeRepo(id) { return this.call("remove_repo", { id }); }
   static removeSource(id) { return this.call("remove_source", { id }); }
-  static restoreIgnored(sourceId, name) { return this.call("restore_ignored", { sourceId, name }); }
 
   // ---- checking / updating
   static checkNow() { return this.call("check_now"); }
