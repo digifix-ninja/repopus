@@ -139,9 +139,9 @@ Code style: small objects with one job each, and a short comment on every functi
 
 `repopus.json` in the app's data folder:
 
-- macOS: `~/Library/Application Support/ninja.digifix.repopus/`
-- Windows: `%APPDATA%\ninja.digifix.repopus\`
-- Linux: `~/.local/share/ninja.digifix.repopus/`
+- macOS: `~/Library/Application Support/dev.stean.repopus/`
+- Windows: `%APPDATA%\dev.stean.repopus\`
+- Linux: `~/.local/share/dev.stean.repopus/`
 
 ## Changing the About information
 
