@@ -10,6 +10,7 @@ import { RepoList } from "./views/repo-list.js";
 import { RepoPanel } from "./views/repo-panel.js";
 import { SettingsPanel } from "./views/settings-panel.js";
 import { AboutPanel } from "./views/about-panel.js";
+import { RepoPicker } from "./views/repo-picker.js";
 import { Sheet } from "./views/sheet.js";
 
 class App {
@@ -23,6 +24,7 @@ class App {
       toggleGroup: key => this.toggleGroup(key),
       updateGroup: owner => this.run(() => Api.updateOwner(owner)),
       fillExample: text => this.fillAddField(text),
+      chooseRepos: owner => this.picker.showFor(owner),
     });
     this.panel = new RepoPanel(this.store, this.toast, {
       updateRepo: id => this.updateRepo(id),
@@ -31,8 +33,10 @@ class App {
     this.settings = new SettingsPanel(this.store, this.toast, {
       reload: () => this.reload(),
       openAbout: () => this.about.show(),
+      chooseRepos: owner => this.picker.showFor(owner),
     });
     this.about = new AboutPanel(this.toast);
+    this.picker = new RepoPicker(this.toast);
     this.store.subscribe(() => this.render());
   }
 
@@ -100,7 +104,8 @@ class App {
     input.focus();
   }
 
-  /** Adds the link typed in the add field. */
+  /** Adds the link typed in the add field. A repository is added at once; an account
+   *  opens the pop-up for choosing its repositories. */
   async addLink() {
     const input = document.querySelector("#add-input");
     const button = document.querySelector("#add-btn");
@@ -109,7 +114,9 @@ class App {
     button.disabled = true;
     button.textContent = "Adding…";
     try {
-      this.toast.show(await Api.addLink(link));
+      const outcome = await Api.addLink(link);
+      if (outcome.kind === "added") this.toast.show(outcome.message);
+      else this.picker.show(outcome.account);
       input.value = "";
     } catch (error) {
       this.toast.error(error);
@@ -149,7 +156,7 @@ class App {
     // "Show in Finder/Explorer" and "Open on GitHub" buttons anywhere outside the settings and about panels.
     document.addEventListener("click", e => {
       const t = e.target.closest("[data-reveal], [data-url]");
-      if (!t || t.closest("#settings, #about")) return;
+      if (!t || t.closest("#settings, #about, #picker")) return;
       if (t.dataset.reveal) this.run(() => Api.reveal(t.dataset.reveal));
       else this.run(() => Api.openUrl(t.dataset.url));
     });

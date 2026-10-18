@@ -118,12 +118,20 @@ pub struct Source {
     /// Repository names the user stopped tracking; they won't come back on their own.
     #[serde(default)]
     pub ignored: Vec<String>,
+    /// Repositories that appear on the account later are added on their own.
+    #[serde(default = "yes")]
+    pub add_new: bool,
     #[serde(default)]
     pub last_error: Option<String>,
     #[serde(default)]
     pub last_listed_at: Option<DateTime<Utc>>,
     #[serde(default)]
     pub gone_since: Option<DateTime<Utc>>,
+}
+
+/// Default for switches that start on.
+fn yes() -> bool {
+    true
 }
 
 /// A copy Repopus wrote to disk.
@@ -327,6 +335,41 @@ pub struct AppView {
     pub checking: bool,
     pub updating: usize,
     pub collapsed_groups: Vec<String>,
+}
+
+/// One repository in the "choose repositories" window.
+#[derive(Debug, Clone, Serialize)]
+pub struct RepoChoice {
+    pub name: String,
+    pub description: Option<String>,
+    pub private: bool,
+    pub fork: bool,
+    pub archived: bool,
+    pub pushed_at: Option<String>,
+    pub size_kb: Option<u64>,
+    /// Tracked now (or, for an account not followed yet, suggested).
+    pub selected: bool,
+}
+
+/// An account's repositories, for choosing which ones Repopus tracks.
+#[derive(Debug, Clone, Serialize)]
+pub struct AccountChoice {
+    pub owner: String,
+    /// "User" or "Organization".
+    pub account_type: String,
+    pub following: bool,
+    pub add_new: bool,
+    pub repos: Vec<RepoChoice>,
+}
+
+/// What a pasted link led to.
+#[derive(Debug, Clone, Serialize)]
+#[serde(tag = "kind", rename_all = "snake_case")]
+pub enum AddOutcome {
+    /// A single repository was added.
+    Added { message: String },
+    /// An account: the window lets the user choose its repositories first.
+    ChooseRepos { account: AccountChoice },
 }
 
 /// Progress of the app as a whole (checking, downloads running, last message).

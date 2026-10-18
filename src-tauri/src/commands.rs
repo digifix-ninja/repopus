@@ -7,7 +7,7 @@ use crate::desktop::Desktop;
 use crate::look::Look;
 use crate::state::AppState;
 use crate::token::{Token, TokenSource, TokenStatus};
-use repopus_core::{AppView, Engine, RepoSettings, RepoView, Settings};
+use repopus_core::{AccountChoice, AddOutcome, AppView, Engine, RepoSettings, RepoView, Settings};
 use std::future::Future;
 use std::path::Path;
 use tauri::{AppHandle, State};
@@ -42,10 +42,29 @@ pub fn about(app: AppHandle) -> About {
 
 // ==================================================================== adding / removing
 
-/// Adds an account or repository from a pasted link, then checks.
+/// Adds a repository from a pasted link, then checks. An account link returns its
+/// repositories instead, for the window to let the user choose.
 #[tauri::command]
-pub async fn add_link(state: State<'_, AppState>, link: String) -> Res<String> {
-    let message = state.engine.add_link(&link).await?;
+pub async fn add_link(state: State<'_, AppState>, link: String) -> Res<AddOutcome> {
+    let outcome = state.engine.add_link(&link).await?;
+    if matches!(outcome, AddOutcome::Added { .. }) {
+        in_background(&state.engine, |e| async move {
+            let _ = e.check_all().await;
+        });
+    }
+    Ok(outcome)
+}
+
+/// An account's repositories, marked with the ones tracked now.
+#[tauri::command]
+pub async fn account_repos(state: State<'_, AppState>, owner: String) -> Res<AccountChoice> {
+    state.engine.account_choice(&owner).await
+}
+
+/// Follows an account with only the chosen repositories (or changes the choice), then checks.
+#[tauri::command]
+pub async fn choose_repos(state: State<'_, AppState>, owner: String, chosen: Vec<String>, add_new: bool) -> Res<String> {
+    let message = state.engine.choose_repos(&owner, &chosen, add_new).await?;
     in_background(&state.engine, |e| async move {
         let _ = e.check_all().await;
     });

@@ -1,49 +1,167 @@
 //! Adding and removing what Repopus tracks: followed accounts and single repositories.
 
 use super::{repositories, Engine, EngineEvent};
-use crate::github::{ApiRepo, Fetch};
+use crate::github::{ApiRepo, Fetch, GhError};
 use crate::link::Link;
 use crate::model::*;
 use chrono::Utc;
 use std::collections::HashSet;
 
 impl Engine {
-    /// Adds whatever the pasted link points at. Returns a short message for the window.
-    /// The caller runs a check afterwards.
-    pub async fn add_link(&self, input: &str) -> Result<String, String> {
+    /// Adds whatever the pasted link points at. A repository is added at once (the caller
+    /// runs a check afterwards); an account comes back with its repositories, so the user
+    /// can choose which ones to track (see `choose_repos`).
+    pub async fn add_link(&self, input: &str) -> Result<AddOutcome, String> {
         match Link::parse(input)? {
-            Link::Account { owner } => self.follow_account(&owner).await,
-            Link::Repo { owner, name, branch } => self.add_single_repo(&owner, &name, branch).await,
+            Link::Account { owner } => Ok(AddOutcome::ChooseRepos {
+                account: self.account_choice(&owner).await?,
+            }),
+            Link::Repo { owner, name, branch } => {
+                let message = self.add_single_repo(&owner, &name, branch).await?;
+                Ok(AddOutcome::Added { message })
+            }
         }
     }
 
-    /// Follows an account: all its repositories now, and new ones later.
-    async fn follow_account(&self, owner: &str) -> Result<String, String> {
-        let id = owner.to_lowercase();
-        if self.is_following(&id).await {
-            return Err(format!("You're already following {owner}."));
-        }
-        let user = match self.inner.github.user(owner).await.map_err(|e| e.to_string())? {
-            Fetch::Modified { data, .. } => data,
-            _ => return Err(format!("There is no GitHub account called “{owner}”.")),
-        };
-        {
+    /// An account's repositories, marked with the ones tracked now. For an account that
+    /// isn't followed yet, the ones the settings would include are suggested.
+    pub async fn account_choice(&self, owner: &str) -> Result<AccountChoice, String> {
+        let (login, kind, list) = self.fetch_account(owner).await?;
+        let id = login.to_lowercase();
+        let st = self.inner.store.lock().await;
+        let source = st.sources.iter().find(|s| s.id == id);
+        let s = &st.settings;
+        let mut repos: Vec<RepoChoice> = list
+            .iter()
+            .map(|api| {
+                let tracked = st.repos.contains_key(&api.full_name.to_lowercase());
+                let suggested = (s.include_forks || !api.fork) && (s.include_archived || !api.archived);
+                Self::choice(api, tracked || (source.is_none() && suggested))
+            })
+            .collect();
+        repos.sort_by_key(|r| r.name.to_lowercase());
+        Ok(AccountChoice {
+            owner: login,
+            account_type: kind,
+            following: source.is_some(),
+            add_new: source.is_none_or(|s| s.add_new),
+            repos,
+        })
+    }
+
+    /// Follows an account (if it isn't yet) and tracks exactly the `chosen` repositories.
+    /// The others are remembered as not wanted; ones that were tracked before stop being
+    /// tracked, but their files stay. `add_new`: repositories that appear on the account
+    /// later are added on their own. Returns a short message; the caller runs a check.
+    pub async fn choose_repos(&self, owner: &str, chosen: &[String], add_new: bool) -> Result<String, String> {
+        let (login, kind, list) = self.fetch_account(owner).await?;
+        let id = login.to_lowercase();
+        let chosen: HashSet<String> = chosen.iter().map(|n| n.to_lowercase()).collect();
+        let (newly_followed, added, dropped) = {
             let mut st = self.inner.store.lock().await;
-            st.sources.push(Source {
-                id: id.clone(),
-                owner: user.login.clone(),
-                account_type: Some(user.kind.clone()),
-                added_at: Utc::now(),
-                ignored: Vec::new(),
-                last_error: None,
-                last_listed_at: None,
-                gone_since: None,
-            });
+            let defaults = st.settings.defaults.clone();
+            let newly_followed = !st.sources.iter().any(|s| s.id == id);
+            if newly_followed {
+                st.sources.push(Source {
+                    id: id.clone(),
+                    owner: login.clone(),
+                    account_type: None,
+                    added_at: Utc::now(),
+                    ignored: Vec::new(),
+                    add_new,
+                    last_error: None,
+                    last_listed_at: None,
+                    gone_since: None,
+                });
+            }
+            if let Some(source) = st.sources.iter_mut().find(|s| s.id == id) {
+                source.account_type = Some(kind);
+                source.add_new = add_new;
+                source.ignored = list
+                    .iter()
+                    .map(|api| api.name.to_lowercase())
+                    .filter(|name| !chosen.contains(name))
+                    .collect();
+            }
+            let (mut added, mut dropped) = (0, 0);
+            for api in &list {
+                let repo_id = api.full_name.to_lowercase();
+                if chosen.contains(&api.name.to_lowercase()) {
+                    if !st.repos.contains_key(&repo_id) {
+                        st.repos.insert(repo_id, Repo::from_api(api, Some(id.clone()), &defaults));
+                        added += 1;
+                    }
+                } else if st.repos.remove(&repo_id).is_some() {
+                    dropped += 1;
+                }
+            }
+            Self::merge_listing(&mut st, &id, &list);
             self.save(&st);
-        }
+            (newly_followed, added, dropped)
+        };
         self.emit(EngineEvent::StoreChanged);
-        let added = self.refresh_account(&id).await?;
-        Ok(format!("Following {} · {} added", user.login, repositories(added)))
+
+        Ok(if newly_followed {
+            format!("Following {login} · {} added", repositories(added))
+        } else if added + dropped == 0 {
+            format!("{login}: nothing changed")
+        } else {
+            let mut parts = Vec::new();
+            if added > 0 {
+                parts.push(format!("{} added", repositories(added)));
+            }
+            if dropped > 0 {
+                parts.push(format!("{dropped} no longer tracked (files are kept)"));
+            }
+            format!("{login}: {}", parts.join(" · "))
+        })
+    }
+
+    /// Account name as GitHub spells it, its type, and its repositories.
+    async fn fetch_account(&self, owner: &str) -> Result<(String, String, Vec<ApiRepo>), String> {
+        let id = owner.to_lowercase();
+        let followed = self.inner.store.lock().await.sources.iter().any(|s| s.id == id);
+        let (login, kind) = if followed {
+            let (login, is_org) = self.account_kind(&id).await?;
+            (login, if is_org { "Organization" } else { "User" }.to_string())
+        } else {
+            match self.inner.github.user(owner).await.map_err(|e| e.to_string())? {
+                Fetch::Modified { data, .. } => (data.login, data.kind),
+                _ => return Err(format!("There is no GitHub account called “{owner}”.")),
+            }
+        };
+        let list = self
+            .list_account(&login, kind == "Organization")
+            .await
+            .map_err(|e| e.to_string())?
+            .ok_or_else(|| format!("There is no GitHub account called “{owner}”."))?;
+        Ok((login, kind, list))
+    }
+
+    /// Lists an account's repositories; private ones too when it's the token owner's own.
+    /// `None` = the account doesn't exist.
+    async fn list_account(&self, owner: &str, is_org: bool) -> Result<Option<Vec<ApiRepo>>, GhError> {
+        let own = self
+            .token_login()
+            .await
+            .ok()
+            .flatten()
+            .is_some_and(|me| me.eq_ignore_ascii_case(owner));
+        self.inner.github.list_repos(owner, is_org, own).await
+    }
+
+    /// One row of the "choose repositories" window.
+    fn choice(api: &ApiRepo, selected: bool) -> RepoChoice {
+        RepoChoice {
+            name: api.name.clone(),
+            description: api.description.clone(),
+            private: api.private,
+            fork: api.fork,
+            archived: api.archived,
+            pushed_at: api.pushed_at.clone(),
+            size_kb: api.size,
+            selected,
+        }
     }
 
     /// Adds one repository (it appears under its owner's category).
@@ -135,13 +253,7 @@ impl Engine {
     /// the ones that disappeared as gone. Returns how many were added.
     pub(super) async fn refresh_account(&self, source_id: &str) -> Result<usize, String> {
         let (owner, is_org) = self.account_kind(source_id).await?;
-        let own = self
-            .token_login()
-            .await
-            .ok()
-            .flatten()
-            .is_some_and(|me| me.eq_ignore_ascii_case(&owner));
-        let listing = self.inner.github.list_repos(&owner, is_org, own).await;
+        let listing = self.list_account(&owner, is_org).await;
 
         let added = {
             let mut st = self.inner.store.lock().await;
@@ -193,11 +305,6 @@ impl Engine {
         Ok((owner, kind == "Organization"))
     }
 
-    /// Whether this account is already followed.
-    async fn is_following(&self, id: &str) -> bool {
-        self.inner.store.lock().await.sources.iter().any(|s| s.id == id)
-    }
-
     /// The account no longer exists: mark it and all its repositories as gone.
     fn mark_account_gone(st: &mut Store, source_id: &str) {
         let now = Utc::now();
@@ -215,12 +322,9 @@ impl Engine {
     fn merge_listing(st: &mut Store, source_id: &str, list: &[ApiRepo]) -> usize {
         let now = Utc::now();
         let settings = st.settings.clone();
-        let ignored: HashSet<String> = st
-            .sources
-            .iter()
-            .find(|s| s.id == source_id)
-            .map(|s| s.ignored.iter().cloned().collect())
-            .unwrap_or_default();
+        let source = st.sources.iter().find(|s| s.id == source_id);
+        let ignored: HashSet<String> = source.map(|s| s.ignored.iter().cloned().collect()).unwrap_or_default();
+        let add_new = source.is_none_or(|s| s.add_new);
         if let Some(source) = st.sources.iter_mut().find(|s| s.id == source_id) {
             source.gone_since = None;
             source.last_error = None;
@@ -238,7 +342,8 @@ impl Engine {
                 repo.source.get_or_insert_with(|| source_id.to_string());
                 continue;
             }
-            let wanted = !ignored.contains(&api.name.to_lowercase())
+            let wanted = add_new
+                && !ignored.contains(&api.name.to_lowercase())
                 && (settings.include_forks || !api.fork)
                 && (settings.include_archived || !api.archived);
             if wanted {
