@@ -177,8 +177,16 @@ jobs:
           TAG: ${{ github.ref_name }}
         run: |
           ls -l installers
+          # The release notes are the message of an annotated tag (git tag -a), if there is one.
+          repo="${{ github.repository }}"
+          notes=""
+          tag_object="$(gh api "repos/$repo/git/ref/tags/$TAG" --jq 'select(.object.type == "tag") | .object.sha')"
+          if [ -n "$tag_object" ]; then
+            notes="$(gh api "repos/$repo/git/tags/$tag_object" --jq .message)"
+          fi
+          notes="${notes:-See the assets below for macOS, Windows and Linux.}"
           gh release create "$TAG" installers/* \
-            --repo "${{ github.repository }}" \
+            --repo "$repo" \
             --draft \
             --title "Repopus $TAG" \
-            --notes "See the assets below for macOS, Windows and Linux."
+            --notes "$notes"

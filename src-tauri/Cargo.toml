@@ -1,10 +1,10 @@
 [package]
 name = "repopus"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 description = "Repopus keeps local copies of GitHub repositories up to date"
 license = "MIT"
-authors = ["stean.ART"]
+authors = ["stean.DEV"]
 homepage = "https://repopus.app"
 default-run = "repopus"
 
@@ -19,6 +19,7 @@ serde_json = "1"
 tauri = { version = "2", features = ["tray-icon", "image-png"] }
 tauri-plugin-autostart = "2"
 tauri-plugin-dialog = "2"
+tauri-plugin-notification = "2"
 tokio = { version = "1", features = ["sync", "time"] }
 
 # Token storage in each system's own keychain.

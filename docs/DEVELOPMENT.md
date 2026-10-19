@@ -95,6 +95,7 @@ Where copies go, inside the repository's folder (default `~/Repopus/<owner>/`):
 ```
 core/src/                 sync engine (no UI)
   model.rs                  stored data and what the window receives
+  app_release.rs            latest Repopus release on GitHub, version comparison
   link.rs                   Link::parse – understanding pasted links
   github.rs                 GitHub – REST client (ETags, rate limits, zip streaming)
   repo.rs                   impl Repo – branch, status, row for the window
@@ -118,7 +119,8 @@ src-tauri/src/            the desktop app (macOS, Windows, Linux)
   token.rs                  Token – system keychain / GitHub CLI
   desktop.rs                Desktop – show in Finder/Explorer, open links (per system)
   look.rs                   Look – light / dark window frame
-  about.rs                  About – version, websites, developer, licence, allowed links
+  about.rs                  About – version, websites, developer, email, licence, allowed links
+  app_update.rs             AppUpdates – looks for a newer Repopus, notifies once
 src-tauri/tauri.conf.json   app configuration
 ui/                       the interface (plain HTML/CSS/JS modules)
   index.html, styles.css, logo.svg
@@ -128,7 +130,7 @@ ui/                       the interface (plain HTML/CSS/JS modules)
   js/platform.js            Platform – macOS / Windows / Linux names (Finder, Explorer…)
   js/theme.js               Theme – system / light / dark grey
   js/format.js, icons.js, toast.js
-  js/views/                 Header, RepoList, Progress, Sheet, RepoPanel, SettingsPanel, AboutPanel
+  js/views/                 Header, RepoList, Progress, Sheet, RepoPanel, SettingsPanel, AboutPanel, UpdateBanner
 .github/workflows/build.yml  GitHub Actions workflow for all three systems
 docs/                     this guide and the README screenshots
 ```
@@ -145,5 +147,5 @@ Code style: small objects with one job each, and a short comment on every functi
 
 ## Changing the About information
 
-Websites, developer and the link to the source code are constants in
-`src-tauri/src/about.rs`. The licence text is in `LICENSE`.
+Websites, developer, email, the link to the source code and the repository whose releases
+count as app updates are constants in `src-tauri/src/about.rs`. The licence text is in `LICENSE`.

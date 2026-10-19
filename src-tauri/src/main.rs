@@ -8,6 +8,7 @@
 //! * `scheduler.rs` – runs the automatic check when it's due
 //! * `token.rs`     – the GitHub token (Keychain / GitHub CLI)
 //! * `about.rs`     – name, version, developer and licence for the About panel
+//! * `app_update.rs` – looks on GitHub for a newer Repopus and tells the user
 //! * `desktop.rs`   – showing files and opening links, per operating system
 //! * `look.rs`      – light / dark window frame
 //! * `commands.rs`  – everything the window can ask for
@@ -15,6 +16,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 mod about;
+mod app_update;
 mod commands;
 mod desktop;
 mod events;
@@ -24,6 +26,7 @@ mod state;
 mod token;
 mod tray;
 
+use app_update::AppUpdates;
 use look::Look;
 use repopus_core::Engine;
 use scheduler::Scheduler;
@@ -51,6 +54,7 @@ fn bring_over_old_settings(state_file: &std::path::Path) {
 fn main() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .plugin(tauri_plugin_notification::init())
         .plugin(tauri_plugin_autostart::init(
             tauri_plugin_autostart::MacosLauncher::LaunchAgent,
             None,
@@ -64,8 +68,10 @@ fn main() {
             let appearance = tauri::async_runtime::block_on(engine.settings()).appearance;
             Look::apply(&handle, appearance);
             app.manage(AppState::new(engine.clone()));
+            app.manage(AppUpdates::default());
             Tray::install(&handle)?;
             Scheduler::new(engine).start();
+            AppUpdates::start(&handle);
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -82,6 +88,8 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             commands::get_state,
             commands::about,
+            commands::app_update,
+            commands::check_app_update,
             commands::add_link,
             commands::account_repos,
             commands::choose_repos,

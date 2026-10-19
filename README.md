@@ -66,6 +66,8 @@ Every creator gets their own category, with one line per repository:
   Repopus only ever removes files it created itself.
 - **Foldable categories**, filters, search, live download progress and **Update all**, globally
   or per account.
+- **Tells you about new versions of itself.** Repopus looks for a new release on GitHub
+  twice a day and lets you know when one is ready to download.
 - **Light, dark grey, or follow the system.**
 - **macOS, Windows and Linux.**
 
@@ -122,7 +124,7 @@ Bug reports, ideas and pull requests are welcome. Please open an issue first for
 
 ## Licence
 
-[MIT](LICENSE) © 2026 [stean.ART](https://stean.art)
+[MIT](LICENSE) © 2026 [stean.DEV](https://stean.dev)
 
 Repopus isn't affiliated with GitHub, Inc. GitHub is a trademark of GitHub, Inc.;
 Git is a trademark of the Software Freedom Conservancy.

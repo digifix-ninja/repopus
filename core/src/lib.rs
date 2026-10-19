@@ -3,6 +3,7 @@
 //! | module      | responsibility                                                    |
 //! |-------------|-------------------------------------------------------------------|
 //! | `model`     | the data Repopus stores and the rows the window receives         |
+//! | `app_release` | whether a newer Repopus has been published on GitHub          |
 //! | `link`      | turning a pasted GitHub link into an account or a repository     |
 //! | `github`    | talking to GitHub (cheap conditional requests, zip downloads)    |
 //! | `repo`      | behaviour of one tracked repository (branch, status, view)       |
@@ -13,6 +14,7 @@
 //! | `store`     | reading and safely writing the state file                        |
 //! | `engine`    | the orchestration: follow, check, update, never delete           |
 
+pub mod app_release;
 pub mod archive;
 pub mod engine;
 pub mod files;

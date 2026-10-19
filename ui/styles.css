@@ -419,5 +419,20 @@ a.link:hover { text-decoration: underline; }
 .about-hero p { color: var(--muted); margin: 12px 8px 0; }
 .about-site { margin-top: 6px; font-weight: 560; }
 .about .help + .help { margin-top: 8px; }
+.about-row { display: flex; justify-content: space-between; align-items: center; gap: 12px; padding: 11px 12px; border-top: 1px solid var(--line); }
+.about-row:first-child { border-top: none; }
+.about-row .lbl { color: var(--muted); }
+.about-update { display: flex; flex-direction: column; gap: 10px; }
+.about-update-line { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; }
+
+/* ---------------------------------------------------------------- app update banner */
+
+.update-banner {
+  display: flex; align-items: center; gap: 10px; flex: none;
+  margin: 12px 20px 0; padding: 8px 10px 8px 14px; border-radius: 10px;
+  background: var(--accent-soft); color: var(--text);
+}
+.update-banner[hidden] { display: none; }
+.update-banner .msg { flex: 1; min-width: 0; }
 .fineprint { color: var(--faint); font-size: 11px; margin-top: 22px; text-align: center; line-height: 1.5; }
 .settings-about { margin-top: 24px; text-align: center; }

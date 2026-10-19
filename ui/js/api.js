@@ -17,6 +17,8 @@ export class Api {
   static getState() { return this.call("get_state"); }
   static tokenStatus() { return this.call("token_status"); }
   static about() { return this.call("about"); }
+  static appUpdate() { return this.call("app_update"); }
+  static checkAppUpdate() { return this.call("check_app_update"); }
 
   // ---- adding / removing
   static addLink(link) { return this.call("add_link", { link }); }
@@ -39,7 +41,7 @@ export class Api {
   static setAllCollapsed(collapsed) { return this.call("set_all_collapsed", { collapsed }); }
   static setToken(token) { return this.call("set_token", { token }); }
 
-  // ---- macOS helpers
+  // ---- system helpers
   static pickFolder(start) { return this.call("pick_folder", { start }); }
   static reveal(path) { return this.call("reveal_path", { path }); }
   static openUrl(url) { return this.call("open_url", { url }); }

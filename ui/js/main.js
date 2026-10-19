@@ -10,6 +10,7 @@ import { RepoList } from "./views/repo-list.js";
 import { RepoPanel } from "./views/repo-panel.js";
 import { SettingsPanel } from "./views/settings-panel.js";
 import { AboutPanel } from "./views/about-panel.js";
+import { UpdateBanner } from "./views/update-banner.js";
 import { RepoPicker } from "./views/repo-picker.js";
 import { Sheet } from "./views/sheet.js";
 
@@ -36,6 +37,7 @@ class App {
       chooseRepos: owner => this.picker.showFor(owner),
     });
     this.about = new AboutPanel(this.toast);
+    this.updateBanner = new UpdateBanner(this.toast);
     this.picker = new RepoPicker(this.toast);
     this.store.subscribe(() => this.render());
   }
@@ -47,6 +49,7 @@ class App {
     this.bindShortcuts();
     this.listenToRust();
     await this.reload();
+    Api.appUpdate().then(status => this.appUpdate(status)).catch(() => {});
     setInterval(() => this.store.changed(), 30_000); // keeps "5 min ago" fresh
   }
 
@@ -77,6 +80,12 @@ class App {
     } catch (error) {
       this.toast.error(error);
     }
+  }
+
+  /** A newer version of Repopus (or none): the banner and the About panel show it. */
+  appUpdate(status) {
+    this.updateBanner.show(status);
+    this.about.setUpdate(status);
   }
 
   /** Starts updating one repository (the row turns busy at once). */
@@ -183,6 +192,7 @@ class App {
     });
     Api.on("progress", ({ id, busy }) => this.store.setProgress(id, busy));
     Api.on("activity", activity => this.store.setActivity(activity));
+    Api.on("app-update", status => this.appUpdate(status));
 
     // Bursts of "store-changed" are merged into one reload.
     let timer = null;

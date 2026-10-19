@@ -1,9 +1,9 @@
 [package]
 name = "repopus-core"
-version = "0.3.0"
+version = "0.4.0"
 edition = "2021"
 license = "MIT"
-authors = ["stean.ART"]
+authors = ["stean.DEV"]
 description = "Sync engine for Repopus: checks GitHub repositories and keeps local zip/folder copies up to date"
 
 [dependencies]

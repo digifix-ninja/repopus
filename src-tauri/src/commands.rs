@@ -3,6 +3,7 @@
 //! events, so the window never waits on the network.
 
 use crate::about::About;
+use crate::app_update::{AppUpdates, UpdateStatus};
 use crate::desktop::Desktop;
 use crate::look::Look;
 use crate::state::AppState;
@@ -38,6 +39,18 @@ pub async fn get_state(state: State<'_, AppState>) -> Res<AppView> {
 #[tauri::command]
 pub fn about(app: AppHandle) -> About {
     About::of(&app)
+}
+
+/// What is known about a newer version of Repopus (without asking GitHub).
+#[tauri::command]
+pub fn app_update(app: AppHandle) -> UpdateStatus {
+    AppUpdates::status(&app)
+}
+
+/// Asks GitHub now whether a newer version of Repopus has been published.
+#[tauri::command]
+pub async fn check_app_update(app: AppHandle) -> Res<UpdateStatus> {
+    Ok(AppUpdates::check(&app).await)
 }
 
 // ==================================================================== adding / removing
@@ -243,7 +256,8 @@ pub fn reveal_path(path: String) -> Res<()> {
     Desktop::reveal(Path::new(&path))
 }
 
-/// Opens a page in the browser (only GitHub and the developer's website).
+/// Opens a page in the browser (only GitHub and the app's and developer's websites),
+/// or an email to the developer.
 #[tauri::command]
 pub fn open_url(url: String) -> Res<()> {
     if !About::may_open(&url) {

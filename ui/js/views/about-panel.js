@@ -1,4 +1,4 @@
-// Side panel about the app: version, developer, licence, privacy.
+// Side panel about the app: version, links, updates, developer, licence, privacy.
 
 import { Api } from "../api.js";
 import { Format } from "../format.js";
@@ -13,6 +13,8 @@ export class AboutPanel extends Sheet {
     super(document.querySelector("#about"));
     this.toast = toast;
     this.info = null;
+    this.update = null;
+    this.checking = false;
     this.el.addEventListener("click", e => this.onClick(e));
   }
 
@@ -23,14 +25,19 @@ export class AboutPanel extends Sheet {
     this.render();
   }
 
+  /** The latest word on a newer version of Repopus (from the window or a check). */
+  setUpdate(status) {
+    this.update = status;
+    this.render();
+  }
+
   /** Draws the panel. */
   render() {
     if (!this.isOpen) return;
     const a = this.info || { name: "Repopus", version: "", developer: "", website: "", licence: "MIT" };
     const host = url => (url || "").replace(/^https:\/\//, "");
-    const source = a.source_code
-      ? `<a class="link" data-url="${esc(a.source_code)}">View the source code on GitHub</a>`
-      : `<span class="muted">The source code will be published on GitHub.</span>`;
+    const link = url => `<a class="link" data-url="${esc(url)}">${esc(host(url))}</a>`;
+    const row = (label, value) => value ? `<div class="about-row"><span class="lbl">${label}</span><span>${value}</span></div>` : "";
 
     this.renderKeepingScroll(`
       <div class="sheet-head">
@@ -42,17 +49,30 @@ export class AboutPanel extends Sheet {
           <img src="logo.svg" alt="">
           <h2>${esc(a.name)}</h2>
           <div class="muted">Version ${esc(a.version)}</div>
-          ${a.app_website ? `<div class="about-site"><a class="link" data-url="${esc(a.app_website)}">${esc(host(a.app_website))}</a></div>` : ""}
           <p>Keeps the GitHub projects you follow up to date on your computer, and never deletes
              anything that disappears from GitHub.</p>
         </div>
 
         <div class="section">
+          <h4>${esc(a.name)}</h4>
+          <div class="card">
+            ${row("Website", a.app_website && link(a.app_website))}
+            ${row("GitHub", a.source_code && link(a.source_code))}
+          </div>
+        </div>
+
+        <div class="section">
+          <h4>Updates</h4>
+          <div class="card"><div class="field about-update">${this.updateText()}</div></div>
+        </div>
+
+        <div class="section">
           <h4>Developer</h4>
-          <div class="card"><div class="field">
-            <div class="lbl">${esc(a.developer)}</div>
-            <div class="help"><a class="link" data-url="${esc(a.website)}">${esc(host(a.website))}</a></div>
-          </div></div>
+          <div class="card">
+            ${row("Developer", `<strong>${esc(a.developer)}</strong>`)}
+            ${row("Website", a.website && link(a.website))}
+            ${row("Email", a.email && `<a class="link" data-url="mailto:${esc(a.email)}">${esc(a.email)}</a>`)}
+          </div>
         </div>
 
         <div class="section">
@@ -60,7 +80,6 @@ export class AboutPanel extends Sheet {
           <div class="card"><div class="field">
             <div class="help">${esc(a.name)} is free and open-source software under the ${esc(a.licence)} licence.
               You may use, change and share it.</div>
-            <div class="help">${source}</div>
             <div class="help">Built with Rust and Tauri.</div>
           </div></div>
         </div>
@@ -79,11 +98,43 @@ export class AboutPanel extends Sheet {
       </div>`);
   }
 
+  /** The "Updates" card: a newer version, "up to date", or a failed check. */
+  updateText() {
+    const u = this.update;
+    const button = `<button class="btn small" data-check-update ${this.checking ? "disabled" : ""}>
+      ${this.checking ? "Checking…" : "Check for updates"}</button>`;
+    let text = `<span class="muted">Repopus looks for a new version on GitHub twice a day.</span>`;
+    if (u?.available) {
+      text = `<span><strong>Version ${esc(u.available.version)} is available.</strong></span>
+        <button class="btn small primary" data-url="${esc(u.available.url)}">Download the update</button>`;
+    } else if (u?.error) {
+      text = `<span class="muted">Couldn't check: ${esc(u.error)}</span>`;
+    } else if (u?.checked) {
+      text = `<span>You have the latest version.</span>`;
+    }
+    return `<div class="about-update-line">${text}</div><div>${button}</div>`;
+  }
+
+  /** Asks GitHub now; the answer also reaches the banner through the "app-update" event. */
+  async checkUpdate() {
+    this.checking = true;
+    this.render();
+    try {
+      this.update = await Api.checkAppUpdate();
+    } catch (error) {
+      this.toast.error(error);
+    } finally {
+      this.checking = false;
+      this.render();
+    }
+  }
+
   /** Close button and links. */
   onClick(event) {
     const t = event.target.closest("button, a");
     if (!t) return;
     if (t.hasAttribute("data-close")) return this.close();
+    if (t.hasAttribute("data-check-update")) return this.checkUpdate();
     if (t.dataset.url) Api.openUrl(t.dataset.url).catch(e => this.toast.error(e));
   }
 }
